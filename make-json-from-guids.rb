@@ -4,13 +4,20 @@ require 'json'
 # LDP URL
 API_KEY = ""
 
+SSL = {
+  :ssl_client_cert => OpenSSL::X509::Certificate.new(File.read("/etc/pki/tls/certs/client.crt")),
+  :ssl_client_key => OpenSSL::PKey::RSA.new(File.read("/etc/pki/tls/private/client.key")),
+  # need this next line for self-signed BBC cloud CA:
+  :ssl_ca_file => "/etc/pki/tls/certs/CloudServicesRoot.pem"
+}
+
 # GET some data for each GUID
 def getDataFromLDP(guid)
 
-  url = "http://ldp-core.api.bbci.co.uk/ldp-core/things/" + guid.strip + "?api_key=" + API_KEY
+  url = "https://ldp-core.api.bbci.co.uk/ldp-core/things/" + guid.strip + "?api_key=" + API_KEY
 
   begin
-    ldp_response = RestClient::Resource.new(url).get({:accept => "application/json-ld"}) 
+    ldp_response = RestClient::Resource.new(url, SSL).get({:accept => "application/json-ld"}) 
     ldp_response_json = JSON.parse ldp_response.body  
     id = ldp_response_json['@id'][28..63]
 
